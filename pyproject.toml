@@ -1,0 +1,37 @@
+[project]
+name = "tunekeep"
+version = "0.1.0"
+description = "Keep a fine-tuned model working after its provider retires the base model: inventory, record, compare, retrain on open weights."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [{ name = "Rush Labs", email = "admin@rushlabs.ai" }]
+keywords = ["fine-tuning", "openai", "llm", "lora", "migration", "evaluation"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+# No runtime dependencies: the standard library only.
+dependencies = []
+
+[project.scripts]
+tunekeep = "tunekeep.cli:main"
+
+[project.urls]
+Homepage = "https://rushlabs.ai/lab"
+Source = "https://github.com/rushlabs-ai/tunekeep"
+Issues = "https://github.com/rushlabs-ai/tunekeep/issues"
+
+[build-system]
+# Exact pin, at least 7 days old when chosen (supply-chain policy).
+requires = ["uv_build==0.13.6"]
+build-backend = "uv_build"
+
+[tool.uv]
+# Never resolve anything published in the last 7 days.
+exclude-newer = "2026-10-30T00:00:00Z"

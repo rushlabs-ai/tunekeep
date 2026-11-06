@@ -1,0 +1,24 @@
+name: release
+on:
+  release:
+    types: [published]
+permissions:
+  contents: read
+jobs:
+  pypi:
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write # PyPI Trusted Publishing; no stored token
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+      - run: python -m unittest discover -s tests -v
+      - run: python -m pip install --require-hashes --no-deps -r .github/build-requirements.txt
+      - run: python -m build --no-isolation
+      - uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
+        # Publishes with attestations (on by default with Trusted Publishing).
