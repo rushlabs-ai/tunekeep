@@ -123,6 +123,14 @@ def make_handler(state: State):
                 if state.fail_429 > 0:
                     state.fail_429 -= 1
                     return self._err(429, "Rate limit reached.", "rate_limit_exceeded", headers={"Retry-After": "0"})
+            if body.get("model") == "gpt-6-luna":
+                # Documented Chat Completions rules for GPT-6 Luna (reasoning effort defaults to medium).
+                effort = body.get("reasoning_effort", "medium")
+                if effort != "none" and ("temperature" in body or "top_p" in body):
+                    return self._err(400, "Unsupported parameter: 'temperature' is not supported with this model.")
+                if effort != "none" and body.get("tools"):
+                    return self._err(400, "Function tools with reasoning_effort are not supported for gpt-6-luna "
+                                          "in /v1/chat/completions.")
             if body.get("model") not in (FT, CKPT, "gpt-6-luna", "gpt-4o-mini-2024-07-18"):
                 return self._err(404, f"The model `{body.get('model')}` does not exist or you do not have access to it.", "model_not_found")
             for m in body.get("messages", []):
@@ -130,6 +138,10 @@ def make_handler(state: State):
                     return self._err(400, "Unrecognized request argument supplied: weight")
             last = body["messages"][-1].get("content") or ""
             message = {"role": "assistant", "content": f"echo: {last}", "refusal": None}
+            if body.get("model") == "gpt-6-luna" and last.endswith(("1", "3")):
+                message["content"] = f"Echo {last}, of course."
+            if last.startswith("json:"):
+                message["content"] = json.dumps({"label": "spam" if body.get("model") != "gpt-6-luna" else "ham", "score": 1})
             if body.get("tools"):
                 name = body["tools"][0]["function"]["name"]
                 message = {"role": "assistant", "content": None, "tool_calls": [
@@ -137,7 +149,8 @@ def make_handler(state: State):
             return self._send(200, {
                 "id": "chatcmpl-1", "object": "chat.completion", "created": 1720000000, "model": body["model"],
                 "choices": [{"index": 0, "message": message, "finish_reason": "tool_calls" if body.get("tools") else "stop"}],
-                "usage": {"prompt_tokens": 10, "completion_tokens": 5, "total_tokens": 15},
+                "usage": {"prompt_tokens": 10, "completion_tokens": 5, "total_tokens": 15,
+                          "completion_tokens_details": {"reasoning_tokens": 3 if body.get("reasoning_effort") not in (None, "none") else 0}},
                 "system_fingerprint": "fp_test",
             })
 

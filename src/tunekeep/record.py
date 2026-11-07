@@ -10,16 +10,13 @@ from __future__ import annotations
 import datetime as dt
 import hashlib
 import json
-import sys
-import threading
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable
 
-from .client import APIError, Client
-from .files import open_private_append
+from .client import Client
+from .runner import RunResult, done_ids, run_parallel
 
 TERMS_NOTE = (
     "Recorded outputs are for evaluation only. tunekeep never trains on them "
@@ -95,18 +92,7 @@ def load_prompts(path: Path) -> list[Prompt]:
 
 
 def already_recorded(out: Path, model: str) -> set[str]:
-    done: set[str] = set()
-    if not out.exists():
-        return done
-    with out.open("r", encoding="utf-8") as fh:
-        for raw in fh:
-            try:
-                rec = json.loads(raw)
-            except json.JSONDecodeError:
-                continue  # a partial last line from an interrupted run
-            if rec.get("model") == model and rec.get("id"):
-                done.add(rec["id"])
-    return done
+    return done_ids(out, "model", model)
 
 
 def build_request(p: Prompt, model: str, temperature: float | None, max_tokens: int | None, seed: int | None) -> dict[str, Any]:
@@ -124,13 +110,7 @@ def estimate_tokens(prompts: Iterable[Prompt]) -> int:
     return sum(len(json.dumps(p.messages)) // 4 for p in prompts)
 
 
-@dataclass
-class RecordResult:
-    total: int
-    skipped: int
-    recorded: int
-    failed: int
-    first_error: str | None
+RecordResult = RunResult
 
 
 def run(
@@ -143,13 +123,10 @@ def run(
     temperature: float | None = 0.0,
     max_tokens: int | None = None,
     seed: int | None = None,
-    progress=sys.stderr,
+    progress=None,
 ) -> RecordResult:
     done = already_recorded(out, model)
     todo = [p for p in prompts if p.id not in done]
-    lock = threading.Lock()
-    recorded = failed = 0
-    first_error: str | None = None
 
     def one(p: Prompt) -> dict[str, Any]:
         body = build_request(p, model, temperature, max_tokens, seed)
@@ -170,25 +147,4 @@ def run(
             "recorded_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
         }
 
-    with open_private_append(out) as fh, ThreadPoolExecutor(max_workers=max(1, workers)) as pool:
-        futures = {pool.submit(one, p): p for p in todo}
-        for i, fut in enumerate(as_completed(futures), start=1):
-            try:
-                rec = fut.result()
-            except APIError as e:
-                failed += 1
-                if first_error is None:
-                    first_error = f"line {futures[fut].line}: {e}"
-                if e.status in (401, 403, 404):
-                    # Wrong key, no access or model gone: no point sending the rest.
-                    for f in futures:
-                        f.cancel()
-                    break
-                continue
-            with lock:
-                fh.write(json.dumps(rec, ensure_ascii=False) + "\n")
-                fh.flush()
-                recorded += 1
-            if progress and (i % 25 == 0 or i == len(todo)):
-                print(f"  {i}/{len(todo)} done", file=progress)
-    return RecordResult(len(prompts), len(prompts) - len(todo), recorded, failed, first_error)
+    return run_parallel(todo, one, out, total=len(prompts), workers=workers, progress=progress)

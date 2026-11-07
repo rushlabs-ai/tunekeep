@@ -66,11 +66,22 @@ class Client:
             azure=azure,
         )
 
+    @classmethod
+    def for_endpoint(cls, base_url: str, key_env: str | None) -> "Client":
+        """A client for a candidate endpoint. A missing key is fine for localhost."""
+        key = os.environ.get(key_env, "").strip() if key_env else ""
+        host = urllib.parse.urlparse(base_url).hostname or ""
+        if not key and host not in ("localhost", "127.0.0.1", "::1"):
+            raise SystemExit(f"tunekeep: set {key_env or 'a key variable'} for {base_url}, or use --candidate-key-env.")
+        return cls(api_key=key, base_url=base_url.rstrip("/"))
+
     # -- low level -----------------------------------------------------------------
 
     def _headers(self, accept_json: bool = True) -> dict[str, str]:
         h = {"User-Agent": f"tunekeep/{__version__}"}
-        if self.azure:
+        if not self.api_key:
+            pass  # local OpenAI-compatible servers (llama-server, vLLM, Ollama) often need no key
+        elif self.azure:
             h["api-key"] = self.api_key
         else:
             h["Authorization"] = f"Bearer {self.api_key}"
