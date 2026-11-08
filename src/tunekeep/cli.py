@@ -170,7 +170,8 @@ def cmd_retrain(args: argparse.Namespace) -> int:
     if revision is None and args.base not in rt.KNOWN_REVISIONS and not Path(args.base).is_dir():
         print(f"Note: {args.base} has no pinned revision; the run records the one it used. Pin with --revision.")
     cfg = rt.build_config(args.base, revision, epochs, args.gpu, rt.sha256_file(data),
-                          lr=args.lr, lora_r=args.lora_r, max_len=args.max_len, timeout_hours=args.timeout_hours)
+                          lr=args.lr, lora_r=args.lora_r, max_len=args.max_len, timeout_hours=args.timeout_hours,
+                          batch_size=args.batch_size, grad_accum=args.grad_accum)
     cfg["gguf"] = None if args.gguf == "none" else args.gguf
     out = Path(args.out)
     rt.write_kit(out, train_rows, val_rows, cfg)
@@ -271,6 +272,8 @@ def build_parser() -> argparse.ArgumentParser:
     rt.add_argument("--lr", type=float, help="Learning rate (default 2e-4)")
     rt.add_argument("--lora-r", type=int, help="LoRA rank (default 16)")
     rt.add_argument("--max-len", type=int, help="Max tokens per sample; longer ones are skipped (default 4096)")
+    rt.add_argument("--batch-size", type=int, help="Samples per micro-batch (default 4)")
+    rt.add_argument("--grad-accum", type=int, help="Micro-batches per optimizer step (default 4)")
     rt.add_argument("--gpu", choices=GPUS, default="L40S", help="Modal GPU (default L40S)")
     rt.add_argument("--timeout-hours", type=float, help="Hard stop for the Modal job (default 2)")
     rt.add_argument("--gguf", default="q8_0", choices=["q8_0", "bf16", "f16", "none"], help="GGUF export (default q8_0)")
