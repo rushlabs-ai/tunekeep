@@ -1,14 +1,17 @@
-# Inputs for requirements-gguf.txt: llama.cpp b11980 convert requirements, CPU torch only from the PyTorch index.
+# Inputs for requirements-gguf.txt: the GGUF conversion step (llama.cpp convert_hf_to_gguf.py), CPU torch only
+# from the PyTorch index. llama.cpp itself pins transformers 4.57.6 / torch 2.11.0, which carry known advisories
+# (GHSA-29pf-2h5f-8g72 and others); these patched versions were checked to produce identical GGUF files.
 [project]
 name = "tunekeep-gguf-step"
 version = "0"
 requires-python = ">=3.12"
 dependencies = [
-  "torch==2.11.0",
-  "numpy~=2.2.6",
-  "sentencepiece>=0.1.98,<0.3.0",
-  "transformers==4.57.6",
-  "protobuf>=4.21.0,<5.0.0",
+  "torch==2.14.1",
+  "transformers==5.22.1",
+  "sentencepiece==0.2.2",
+  "protobuf>=6.33.5,<7",
+  "setuptools>=84.1.0",
+  "numpy>=2.2.6",
   "tqdm>=4.27",
   "pyyaml>=5.1",
   "requests>=2.25",

@@ -1,0 +1,20 @@
+{
+  "old_transformers": "4.57.6",
+  "new_transformers": "5.22.1",
+  "models": {
+    "banking77 (Qwen3 causal LM)": {
+      "tensors": 310,
+      "tensors_identical": true,
+      "tensors_differing": [],
+      "metadata_identical": true,
+      "metadata_differing": []
+    },
+    "rush-small (Qwen3 reranker)": {
+      "tensors": 311,
+      "tensors_identical": true,
+      "tensors_differing": [],
+      "metadata_identical": true,
+      "metadata_differing": []
+    }
+  }
+}

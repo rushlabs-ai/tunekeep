@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Security: the retrain kit's GGUF step no longer uses llama.cpp's own pins (transformers 4.57.6,
+  torch 2.11.0, protobuf 4.25.9, setuptools 81.0.0), which have 17 known advisories including remote
+  code execution (GHSA-29pf-2h5f-8g72). It now uses transformers 5.22.1, torch 2.14.1, protobuf 6.33.6
+  and setuptools 84.2.1; `tools/verify_gguf_env.py` shows the GGUF files are byte-identical.
 - `retrain --batch-size` and `--grad-accum`.
 - The report hides the training-answers and JSON columns when no run has them.
 - Retrain kit: the GGUF step's container now includes config.json (#1).
