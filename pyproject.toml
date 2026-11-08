@@ -1,6 +1,6 @@
 [project]
 name = "tunekeep"
-version = "0.2.0"
+version = "0.2.1"
 description = "Keep a fine-tuned model working after its provider retires the base model: inventory, record, compare, retrain on open weights."
 readme = "README.md"
 requires-python = ">=3.10"

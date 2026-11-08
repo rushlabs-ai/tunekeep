@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1
+
+- First release on PyPI (same features as 0.2.0; the 0.2.0 release workflow could not check out the private repository).
+
 ## 0.2.0
 
 - `tunekeep compare`: score any candidate (gpt-6-luna, an OpenAI-compatible endpoint, your served
