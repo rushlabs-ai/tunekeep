@@ -130,6 +130,10 @@ def _inventory(inv: dict[str, Any]) -> str:
 
 
 def _candidates(summaries: list[dict[str, Any]], baselines: list[dict[str, Any]]) -> str:
+    # Show the training-answers column only when some run has training answers to compare with.
+    with_ref = any((s.get("vs_reference") or {}).get("n") for s in summaries + baselines)
+    with_json = any((s.get("vs_golden") or {}).get("json_valid") is not None for s in summaries)
+
     def row(s: dict[str, Any], baseline: bool = False) -> str:
         g, r = s["vs_golden"], s["vs_reference"]
         lat = "–" if s.get("latency_p50_ms") is None else f"{s['latency_p50_ms']:,} / {s['latency_p95_ms']:,} ms"
@@ -137,24 +141,32 @@ def _candidates(summaries: list[dict[str, Any]], baselines: list[dict[str, Any]]
         if s.get("reasoning_tokens"):
             tokens += f" <span class=\"muted\">({s['reasoning_tokens']:,} reasoning)</span>"
         cls = ' class="baseline"' if baseline else ""
-        return (
-            f"<tr{cls}><th scope=\"row\">{e(s['candidate'])}</th><td class=\"r\">{s['rows']:,}</td>"
-            f"<td class=\"m\">{meter(g.get('mean')) if g.get('n') else '<span class=muted>baseline</span>'}</td>"
-            f"<td class=\"r\">{pct(g.get('match')) if g.get('n') else '–'}</td>"
-            f"<td class=\"m\">{meter(r.get('mean')) if r.get('n') else '<span class=muted>–</span>'}</td>"
-            f"<td class=\"r\">{pct(g.get('json_valid')) if g.get('json_valid') is not None else '–'}</td>"
-            f"<td class=\"r\">{lat}</td><td class=\"r\">{tokens}</td></tr>"
-        )
+        cells = [
+            f"<th scope=\"row\">{e(s['candidate'])}</th><td class=\"r\">{s['rows']:,}</td>",
+            f"<td class=\"m\">{meter(g.get('mean')) if g.get('n') else '<span class=muted>baseline</span>'}</td>",
+            f"<td class=\"r\">{pct(g.get('match')) if g.get('n') else '–'}</td>",
+        ]
+        if with_ref:
+            cells.append(f"<td class=\"m\">{meter(r.get('mean')) if r.get('n') else '<span class=muted>–</span>'}</td>")
+        if with_json:
+            cells.append(f"<td class=\"r\">{pct(g.get('json_valid')) if g.get('json_valid') is not None else '–'}</td>")
+        cells.append(f"<td class=\"r\">{lat}</td><td class=\"r\">{tokens}</td>")
+        return f"<tr{cls}>" + "".join(cells) + "</tr>"
 
+    head = ['<th>Candidate</th><th class="r">Prompts</th><th>Score vs recorded</th><th class="r">Same answer</th>']
+    if with_ref:
+        head.append("<th>Score vs training answers</th>")
+    if with_json:
+        head.append('<th class="r">Valid JSON</th>')
+    head.append('<th class="r">Latency p50 / p95</th><th class="r">Tokens in / out</th>')
+    note = "Score vs recorded: 100% means the same answers as the recorded fine-tune."
+    if with_ref:
+        note += (" Score vs training answers compares with the answers in your training file, when the prompts came "
+                 "from it; the recorded fine-tune's own row is the baseline for that column.")
     body = "".join(row(s) for s in summaries) + "".join(row(b, True) for b in baselines)
     return (
-        '<section><h2>Candidates</h2>'
-        '<p class="muted">Score vs recorded: 100% means the same answers as the recorded fine-tune. '
-        'Score vs training answers compares with the answers in your training file, when the prompts came from it; '
-        'the recorded fine-tune\'s own row is the baseline for that column.</p>'
-        '<div class="scroll"><table><thead><tr><th>Candidate</th><th class="r">Prompts</th><th>Score vs recorded</th>'
-        '<th class="r">Same answer</th><th>Score vs training answers</th><th class="r">Valid JSON</th>'
-        '<th class="r">Latency p50 / p95</th><th class="r">Tokens in / out</th></tr></thead>'
+        f'<section><h2>Candidates</h2><p class="muted">{e(note)}</p>'
+        f'<div class="scroll"><table><thead><tr>{"".join(head)}</tr></thead>'
         f'<tbody>{body}</tbody></table></div></section>'
     )
 

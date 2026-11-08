@@ -312,12 +312,14 @@ class CliV02Tests(EnvMixin, unittest.TestCase):
             self.assertFalse((tmp / "kit").exists())
 
             kit = tmp / "kit"
-            code, text = self.run_cli("retrain", "--data", str(train), "--out", str(kit), "--inventory", str(inv))
+            code, text = self.run_cli("retrain", "--data", str(train), "--out", str(kit), "--inventory", str(inv),
+                                      "--batch-size", "16", "--grad-accum", "1")
             self.assertEqual(code, 0, text)
             for name in ("train_lora.py", "modal_app.py", "requirements-train.txt", "requirements-gguf.txt", "config.json"):
                 self.assertTrue((kit / name).exists(), name)
             cfg = json.loads((kit / "config.json").read_text())
             self.assertEqual((cfg["base"], cfg["epochs"], cfg["gpu"]), ("Qwen/Qwen3-1.7B", 4, "L40S"))
+            self.assertEqual((cfg["batch_size"], cfg["grad_accum"]), (16, 1))
             self.assertEqual(cfg["revision"], retrain.KNOWN_REVISIONS["Qwen/Qwen3-1.7B"])
             self.assertEqual(len((kit / "data" / "train.jsonl").read_text().splitlines()), 50)
             self.assertEqual(len((kit / "data" / "validation.jsonl").read_text().splitlines()), 10)
@@ -325,6 +327,19 @@ class CliV02Tests(EnvMixin, unittest.TestCase):
             req = (kit / "requirements-train.txt").read_text()
             self.assertIn("--hash=sha256:", req)
             self.assertIn("torch==2.14.1", req)
+
+
+class ReportColumnTests(unittest.TestCase):
+    def test_training_column_only_when_there_are_training_answers(self):
+        from tunekeep.report import _candidates
+        base = {"candidate": "m", "rows": 1, "vs_golden": {"n": 1, "mean": 1.0, "match": 1.0, "exact": 1.0, "json_valid": None},
+                "vs_reference": {"n": 0}, "latency_p50_ms": 1, "latency_p95_ms": 2, "prompt_tokens": 1,
+                "completion_tokens": 1, "reasoning_tokens": 0}
+        html = _candidates([base], [])
+        self.assertNotIn("Score vs training answers", html)
+        self.assertNotIn("Valid JSON", html)
+        with_ref = dict(base, vs_reference={"n": 1, "mean": 0.5, "match": 0.5, "exact": 0.5})
+        self.assertIn("Score vs training answers", _candidates([with_ref], []))
 
 
 if __name__ == "__main__":

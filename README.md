@@ -110,6 +110,15 @@ app. It uploads nothing itself. The kit:
 Use `--check` to only validate and summarise the data. See the kit's own README for running it
 elsewhere and serving the result. Not yet supported: DPO, images and audio in training data.
 
+### Does retraining actually work?
+
+A public proof run ([examples/banking77](examples/banking77)): bank customer messages, 77 intents,
+JSON answers. Qwen3-1.7B went from **50.3%** to **90.6%** accuracy on 770 unseen messages after
+`tunekeep retrain` (3,075 examples, 8.5 minutes on one L40S), served locally from the exported
+GGUF and scored with `tunekeep compare`.
+
+![tunekeep report for the banking77 run](docs/banking77-report.png)
+
 ## 5. Report
 
 ```sh

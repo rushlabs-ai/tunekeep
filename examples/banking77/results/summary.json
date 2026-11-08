@@ -1,0 +1,65 @@
+{
+  "base": "Qwen/Qwen3-1.7B",
+  "revision": "70d244cc86ccca08cf5af4e1e306ecf908b1ad5e",
+  "device": "NVIDIA L40S",
+  "train_samples": 3075,
+  "validation_samples": 376,
+  "skipped": {
+    "skipped_template": 0,
+    "skipped_too_long": 0
+  },
+  "target_tokens": 33865,
+  "epochs": 2,
+  "steps": 386,
+  "train_seconds": 508,
+  "tokens_per_second": 5464,
+  "peak_gpu_memory_gb": 18.33,
+  "validation_loss_before": 1.6716865769074003,
+  "validation_loss_by_epoch": [
+    0.05895519839719827,
+    0.043185596307807085
+  ],
+  "trainable_parameters": 17432576,
+  "samples": [
+    {
+      "expected": "{\"intent\": \"Refund_not_showing_up\"}",
+      "got": "{\"intent\": \"Refund_not_showing_up\"}"
+    },
+    {
+      "expected": "{\"intent\": \"Refund_not_showing_up\"}",
+      "got": "{\"intent\": \"Refund_not_showing_up\"}"
+    },
+    {
+      "expected": "{\"intent\": \"Refund_not_showing_up\"}",
+      "got": "{\"intent\": \"request_refund\"}"
+    }
+  ],
+  "versions": {
+    "torch": "2.14.1+cu130",
+    "transformers": "5.22.1",
+    "peft": "0.21.2"
+  },
+  "config": {
+    "base": "Qwen/Qwen3-1.7B",
+    "revision": "70d244cc86ccca08cf5af4e1e306ecf908b1ad5e",
+    "epochs": 2,
+    "lr": 0.0002,
+    "lora_r": 16,
+    "lora_alpha": 32,
+    "lora_dropout": 0.05,
+    "target_modules": "all-linear",
+    "max_len": 4096,
+    "batch_size": 16,
+    "grad_accum": 1,
+    "warmup_ratio": 0.03,
+    "seed": 42,
+    "gradient_checkpointing": true,
+    "gpu": "L40S",
+    "timeout_hours": 2,
+    "gguf": "q8_0",
+    "source": {
+      "training_file_sha256": "4da928bd8e56c31b56910f2b0ce0d83ea00d50972f2064a8f35a648a39ae2821",
+      "tool": "tunekeep 0.2.1"
+    }
+  }
+}

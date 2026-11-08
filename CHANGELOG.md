@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- `retrain --batch-size` and `--grad-accum`.
+- The report hides the training-answers and JSON columns when no run has them.
+- Retrain kit: the GGUF step's container now includes config.json (#1).
+- examples/banking77: a public proof run (Qwen3-1.7B, 50.3% → 90.6% accuracy).
+
 ## 0.2.1
 
 - First release on PyPI (same features as 0.2.0; the 0.2.0 release workflow could not check out the private repository).
