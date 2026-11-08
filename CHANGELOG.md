@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.2
 
 - Security: the retrain kit's GGUF step no longer uses llama.cpp's own pins (transformers 4.57.6,
   torch 2.11.0, protobuf 4.25.9, setuptools 81.0.0), which have 17 known advisories including remote
