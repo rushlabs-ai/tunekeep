@@ -50,6 +50,7 @@ gguf_image = (
         f'test "$(git -C /opt/llama.cpp rev-parse HEAD)" = "{LLAMA_CPP_COMMIT}"',
     )
     .pip_install_from_requirements(str(HERE / "requirements-gguf.txt"))
+    .add_local_file(HERE / "config.json", f"{KIT}/config.json")  # every container imports this file
 )
 
 
