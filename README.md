@@ -158,7 +158,10 @@ python -m unittest discover -s tests -v
 
 The tests run against a fake OpenAI server built from the public API reference: pagination, the
 `shutdown_date` field, blocked training-file downloads, rate limits, tool calls and GPT-6 Luna's
-parameter rules. The retraining kit is tested end to end on CPU with Qwen3-0.6B.
+parameter rules. Both the fake server's responses and every request tunekeep sends are checked
+against OpenAI's official API spec ([openai-openapi](https://github.com/openai/openai-openapi),
+pinned by commit and SHA-256; `tools/openai_spec.py`), so the tests notice when either drifts
+from the real API. The retraining kit is tested end to end on CPU with Qwen3-0.6B.
 `tools/lock-kit.sh` regenerates the kit's hash-locked requirements.
 **Reports from real accounts are very welcome.** Please open an issue with anything that behaves differently.
 

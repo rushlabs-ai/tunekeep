@@ -148,7 +148,8 @@ def make_handler(state: State):
                     {"id": "call_1", "type": "function", "function": {"name": name, "arguments": json.dumps({"q": last})}}]}
             return self._send(200, {
                 "id": "chatcmpl-1", "object": "chat.completion", "created": 1720000000, "model": body["model"],
-                "choices": [{"index": 0, "message": message, "finish_reason": "tool_calls" if body.get("tools") else "stop"}],
+                "choices": [{"index": 0, "message": message, "logprobs": None,
+                             "finish_reason": "tool_calls" if body.get("tools") else "stop"}],
                 "usage": {"prompt_tokens": 10, "completion_tokens": 5, "total_tokens": 15,
                           "completion_tokens_details": {"reasoning_tokens": 3 if body.get("reasoning_effort") not in (None, "none") else 0}},
                 "system_fingerprint": "fp_test",
