@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
-authors = [{ name = "Rush Labs", email = "admin@rushlabs.ai" }]
+authors = [{ name = "Rush Labs", email = "vayun@rushlabs.ai" }]
 keywords = ["fine-tuning", "openai", "llm", "lora", "migration", "evaluation"]
 classifiers = [
   "Development Status :: 3 - Alpha",
